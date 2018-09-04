@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pole.kezuo.mapper.DeviceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.pole.kezuo.entity.Device">
+        <id column="Id" property="Id" />
+        <result column="SimNo" property="SimNo" />
+        <result column="DeviceName" property="DeviceName" />
+        <result column="Description" property="Description" />
+        <result column="SetupDate" property="SetupDate" />
+        <result column="SetupAddress" property="SetupAddress" />
+        <result column="LON" property="lon" />
+        <result column="LAT" property="lat" />
+        <result column="IsValid" property="IsValid" />
+        <result column="LastUpdate" property="LastUpdate" />
+        <result column="DistrictId" property="DistrictId" />
+        <result column="DeviceNo" property="DeviceNo" />
+        <result column="Online" property="Online" />
+        <result column="OnlineTime" property="OnlineTime" />
+        <result column="YearExploitation" property="YearExploitation" />
+        <result column="AlertAvailableWater" property="AlertAvailableWater" />
+        <result column="AlertAvailableElectric" property="AlertAvailableElectric" />
+        <result column="DeviceTypeCodeId" property="DeviceTypeCodeId" />
+        <result column="MeterPulse" property="MeterPulse" />
+        <result column="AlertWaterLevel" property="AlertWaterLevel" />
+        <result column="TerminalState" property="TerminalState" />
+        <result column="Remark" property="Remark" />
+        <result column="CropId" property="CropId" />
+        <result column="Area" property="Area" />
+        <result column="StationType" property="StationType" />
+        <result column="StationCode" property="StationCode" />
+        <result column="Frequency" property="Frequency" />
+        <result column="MainId" property="MainId" />
+        <result column="DeviceType" property="DeviceType" />
+        <result column="Rainfall_Hour" property="rainfallHour" />
+        <result column="WaterLevel" property="WaterLevel" />
+        <result column="WaterUsed" property="WaterUsed" />
+        <result column="Rainfall_Total" property="rainfallTotal" />
+        <result column="Rainfall" property="Rainfall" />
+        <result column="RemoteStation" property="RemoteStation" />
+        <result column="Acq_Time" property="acqTime" />
+        <result column="Rainfall_Day" property="rainfallDay" />
+        
+        
+        <result column="DistrictCode" property="DistrictCode" />
+    </resultMap>
+    
+    <!--查询设备列表-->
+    <!--([Id], [SimNo], [DeviceName], [Description], [SetupDate], [SetupAddress], [LON], [LAT], [IsValid], [LastUpdate], [DistrictId], [DeviceNo], [Online], [OnlineTime], [YearExploitation], [AlertAvailableWater], [AlertAvailableElectric], [DeviceTypeCodeId], [MeterPulse], [AlertWaterLevel], [TerminalState], [Remark], [CropId], [Area], [StationType], [StationCode], [Frequency], [MainId], [DeviceType], [WaterUsed], [RemoteStation], [Rainfall], [Rainfall_Hour], [Rainfall_Day], [Rainfall_Total], [WaterLevel], [Acq_Time])-->
+    <select id="selectDeviceList" parameterType="java.util.HashMap" resultMap="BaseResultMap" >
+        SELECT obj.*, dist.DistrictCode
+        FROM Device obj LEFT JOIN District dist on obj.DistrictId = dist.Id
+        <include refid="dy_where" />
+        ORDER BY obj.LastUpdate DESC
+    </select>
+    
+    <!--where条件-->
+    <sql id="dy_where">
+        <trim prefix="where" prefixOverrides="AND|OR">
+            <if test="null != id and '' != id">
+                AND obj.ID = #{Id}
+            </if>
+            <if test="null != DistrictId and '' != DistrictId">
+                AND obj.DistrictId = #{DistrictId}
+            </if>      
+             <if test="null != beginTime and ''!= beginTime">
+                <![CDATA[
+			 and  obj.LastUpdate >=  #{beginTime}
+		]]> 
+            </if>
+            <if test="null != endTime and ''!= endTime">
+                 <![CDATA[
+			and  obj.LastUpdate <=  #{endTime}
+		]]> 
+            </if>
+
+            <if test="null != DistrictCode and '' != DistrictCode">
+                AND dist.DistrictCode = #{DistrictCode}
+            </if>    
+                
+        </trim>
+    </sql>
+</mapper>
