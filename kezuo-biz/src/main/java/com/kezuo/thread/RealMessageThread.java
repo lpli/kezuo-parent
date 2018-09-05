@@ -5,83 +5,54 @@
  */
 package com.kezuo.thread;
 
+import com.kezuo.Client;
 import com.kezuo.common.CommSend;
 import com.kezuo.common.ConstsKezuo;
-import com.kezuo.common.SpringContextUtil;
+import com.kezuo.core.dto.Message;
 import com.kezuo.entity.Device;
-import com.kezuo.init.SystemInit;
-import com.kezuo.service.IAsyncService;
-import com.kezuo.service.IDeviceService;
-import com.kezuo.util.mytool.CommUtils;
-import com.kezuo.util.mytool.TimeUtil;
-import com.xx.Client;
-import com.xx.core.dto.Message;
-import com.xx.core.dto.RealtimeMessage;
-import java.util.Calendar;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.kezuo.exception.ClientException;
+import com.kezuo.util.CommUtils;
+import com.kezuo.util.Crc8Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+
 /**
  *
+ * 实时数据发送线程
  * @author zlzuo
  */
 public class RealMessageThread implements Runnable {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    private IDeviceService deviceService;
-    private IAsyncService asyncService;
-
-    public RealMessageThread() {
-        deviceService = (IDeviceService) SpringContextUtil.getBean("deviceService");
-        asyncService = (IAsyncService) SpringContextUtil.getBean("asyncService");
-    }
-
-
     @Override
     public void run() {
         while (true) {
             try {
-                Thread.sleep(60000);
-            } catch (Exception e) {
-                log.error(null, e);
-            }
-
-            try {
-                Map<String, Object> queryMap = new HashMap<String, Object>();
-                Calendar cal = Calendar.getInstance();
-                cal.add(Calendar.DAY_OF_MONTH, ConstsKezuo.DAYS_PRE);
-                queryMap.put("beginTime", TimeUtil.convertDateToString(cal.getTime(), TimeUtil.YMDHMS));
-                List<Device> list = deviceService.selectDeviceList(queryMap);
-                Client client;
                 Device device;
-                String stcd = "";
-                for (int i = 0, size = ConstsKezuo.calcClentNum(list.size()); i < size; i++) {
-                    device = list.get(i);
-                    //for (Device device : list) {//定时发送实时数据
+                Client client;
+                for (Map.Entry<String, Client> entry : ConstsKezuo.CLIENT_MAP.entrySet()) {
                     try {
-                        stcd = CommSend.getStcdFromDevice(device);
-                        client = ConstsKezuo.CLIENT_MAP.get(stcd);
+                        client = entry.getValue();
+                        String stcd = entry.getKey();
+                        device = ConstsKezuo.DEVICE_MAP.get(entry.getKey());
                         if (CommUtils.notNull(client) && client.isRunning()) {
-                            Message msg = client.sendMessage(CommSend.getRealMsgFromDevice(device), 6);
-                            //log.info("收到实时数据确认：" + msg.toHexString());
-                            log.info(String.format("i[%s]client[%s]收到实时数据确认：%s", i, stcd, msg.toHexString()));
-                        }else  {
-                            try {
-                                ConstsKezuo.CLIENT_MAP.remove(stcd);
-                                asyncService.executeAsync(device, i);
-                            } catch (Exception e) {
-                                log.error(null, e);
-                            }
+                            Message msg = client.sendMessage(CommSend.getRealMsgFromDevice(device));
+                            log.info(String.format("client[%s]收到实时数据确认：%s", stcd, Crc8Util.formatHexString(msg.toHexString())));
+                        } else {
+                            //重连
+                            client.connect();
                         }
-                    } catch (Exception e) {
-                        log.error(stcd + "-client发送实时数据异常：", e);
+                    } catch (ClientException e) {
+                        log.error("客户端异常", e);
                     }
                 }
-
+                Thread.sleep(6000L);
+            } catch (InterruptedException e) {
+                log.error(null, e);
+                break;
             } catch (Exception e) {
                 log.error(null, e);
             }

@@ -1,10 +1,10 @@
 package com.kezuo.common;
 
 import com.kezuo.entity.Device;
-import com.xx.core.dto.LinkCheckMessage;
-import com.xx.core.dto.ObjectMessage;
-import com.xx.core.dto.RealtimeMessage;
-import com.xx.core.dto.RegisterMessage;
+import com.kezuo.core.dto.LinkCheckMessage;
+import com.kezuo.core.dto.ObjectMessage;
+import com.kezuo.core.dto.RealtimeMessage;
+import com.kezuo.core.dto.RegisterMessage;
 
 public class CommSend {
 
