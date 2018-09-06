@@ -52,7 +52,7 @@ public class Client {
 
 		private String desc;
 
-		private ClientState(int code, String desc) {
+		ClientState(int code, String desc) {
 			this.code = code;
 			this.desc = desc;
 		}
