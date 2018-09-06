@@ -59,13 +59,12 @@ public class RegisterHandler extends ChannelInboundHandlerAdapter {
 					
 				}
 			}else {
-				log.info(String.format("客户端[%s]收到注册数据：%s", clientId, Crc8Util.formatHexString(in.toHexString())));
 				if (!RegisterMessage.isRegister(in)) {
 					// 不是注册信息，交给下一个处理处理
 					ctx.fireChannelRead(in);
 					return;
 				}
-				
+				log.info(String.format("客户端[%s]收到注册数据：%s", clientId, Crc8Util.formatHexString(in.toHexString())));
 			}
 		} finally {
 			// ByteBuf是一个引用计数对象，这个对象必须显示地调用release()方法来释放
