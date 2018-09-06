@@ -5,8 +5,18 @@ import com.kezuo.core.dto.LinkCheckMessage;
 import com.kezuo.core.dto.ObjectMessage;
 import com.kezuo.core.dto.RealtimeMessage;
 import com.kezuo.core.dto.RegisterMessage;
+import com.kezuo.entity.dto.UseWaterRecordMsg;
+import com.kezuo.util.Crc8Util;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Calendar;
+import java.util.Date;
 
 public class CommSend {
+    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
 //    /**
 //     * 获取客户端ID
@@ -114,5 +124,76 @@ public class CommSend {
      */
     public static void initDeviceClient(Device device) {
         //实时信息
+    }
+
+
+    // 把一个字符串的第一个字母大写、效率是最高的、
+    public static String getMethodName(String fildeName) {
+        byte[] items = fildeName.getBytes();
+        items[0] = (byte) ((char) items[0] - 'a' + 'A');
+        return new String(items);
+    }
+
+    /**
+     * 获取对象的16进制字符串
+     *
+     * @param object
+     * @return
+     * @throws Exception
+     */
+    public static String getHexStringFromObject(Object object) throws Exception {
+        StringBuilder sb = new StringBuilder();
+        Field[] fields = null;
+        //Method[] methods = UseWaterRecordMsg.class.getMethods();
+        if (object instanceof UseWaterRecordMsg) {
+            fields = UseWaterRecordMsg.class.getDeclaredFields();
+        }
+        if (fields == null) {
+            return null;
+        }
+        Field field;
+        Method m;
+        for (int i = 0; i < fields.length; i++) {
+            field = fields[i];
+            field.setAccessible(true);
+//            System.out.println(field.getName());
+            if (field.getGenericType().toString().equals("class java.lang.Integer")) {
+                m = (Method) object.getClass().getMethod("get" + CommSend.getMethodName(field.getName()));
+                Integer val = (Integer) m.invoke(object);
+                if (val != null) {
+                    sb.append(Crc8Util.byte2HexString((byte) (val & 0xff)));
+                } else {
+                    sb.append("00 00 00 00");
+                }
+            } else if (field.getGenericType().toString().equals("class java.lang.String")) {
+                m = (Method) object.getClass().getMethod("get" + CommSend.getMethodName(field.getName()));
+                String val = (String) m.invoke(object);
+                if (val != null) {
+                    sb.append(val);
+                } else {
+                    sb.append("00 00 00 00 00 00");
+                }
+            } else if (field.getGenericType().toString().equals("class java.lang.Float")) {
+                m = (Method) object.getClass().getMethod("get" + CommSend.getMethodName(field.getName()));
+                Float val = (Float) m.invoke(object);
+                if (val != null) {
+                    sb.append(Crc8Util.byte2HexString(Crc8Util.float2byte(val)));
+                } else {
+                    sb.append("00 00 00 00");
+                }
+            } else if (field.getGenericType().toString().equals("class java.util.Date")) {
+                m = (Method) object.getClass().getMethod("get" + CommSend.getMethodName(field.getName()));
+                Date val = (Date) m.invoke(object);
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(val);
+                sb.append(Crc8Util.byte2HexString((byte) ((cal.get(Calendar.YEAR) - 2000) & 0xff)));
+                sb.append(Crc8Util.byte2HexString((byte) ((cal.get(Calendar.MONTH) + 1) & 0xff)));
+                sb.append(Crc8Util.byte2HexString((byte) (cal.get(Calendar.DAY_OF_MONTH) & 0xff)));
+                sb.append(Crc8Util.byte2HexString((byte) (cal.get(Calendar.HOUR_OF_DAY) & 0xff)));
+                sb.append(Crc8Util.byte2HexString((byte) (cal.get(Calendar.MINUTE) & 0xff)));
+                sb.append(Crc8Util.byte2HexString((byte) (cal.get(Calendar.SECOND) & 0xff)));
+            }
+        }
+        return sb.toString();
     }
 }
