@@ -274,6 +274,17 @@ public class Crc8Util {
         return StringUtils.join(list, " ");
     }
 
+
+    /**
+     * 将int转为低字节在前，高字节在后的byte数组
+     */
+    public static byte[] int2TolhByte(int n) {
+        byte[] b = new byte[2];
+        b[0] = (byte) (n & 0xff);
+        b[1] = (byte) (n >> 8 & 0xff);
+        return b;
+    }
+
     public static void main(String[] args) {
         String hexStr = "00786712000102f2";
 
