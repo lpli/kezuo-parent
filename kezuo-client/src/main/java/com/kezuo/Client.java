@@ -3,6 +3,7 @@
  */
 package com.kezuo;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -121,7 +122,7 @@ public class Client {
 	/**
 	 * 客户端连接future
 	 */
-	private SyncFuture<Boolean> connectFuture = new SyncFuture<>();
+	private CountDownLatch connectFuture;
 
 	public Client(String host, int port, String clientId, Integer productNo, Integer productPwd, Integer year,
 			Integer month, Integer station, Integer interval, String serial) throws ClientException {
@@ -138,7 +139,8 @@ public class Client {
 		this.serial = serial;
 	}
 
-	public boolean connect() throws InterruptedException, ExecutionException {
+	public void connect() throws InterruptedException, ExecutionException {
+		connectFuture = new CountDownLatch(1);
 		Thread thread = new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -192,7 +194,7 @@ public class Client {
 						log.info(String.format("客户端[%s]开启成功...", clientId));
 						state = ClientState.RUNNING;
 						// 释放连接等待
-						connectFuture.setResponse(true);
+						connectFuture.countDown();
 						// 等待客户端链路关闭，就是由于这里会将线程阻塞，导致无法发送信息，所以我这里开了线程
 						socketChannel.closeFuture().sync();
 					} else {
@@ -213,7 +215,7 @@ public class Client {
 		thread.setName(clientId + "#client");
 		thread.setDaemon(true);
 		thread.start();
-		return connectFuture.get();
+		connectFuture.await();
 	}
 
 	/**
