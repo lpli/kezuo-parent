@@ -66,6 +66,7 @@ public class LinkCheckHandler extends ChannelInboundHandlerAdapter {
 			} else {
 				//返回保持在线，消息传给注册消息处理器
 				ctx.fireChannelRead(msg);
+				log.info(String.format("客户端[%s]收到链路检测返回保持在线，消息传给注册消息处理器！", clientId));
 			}
 		} finally {
 			// ByteBuf是一个引用计数对象，这个对象必须显示地调用release()方法来释放

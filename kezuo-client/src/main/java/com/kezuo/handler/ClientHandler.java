@@ -3,6 +3,8 @@
  */
 package com.kezuo.handler;
 
+import com.kezuo.core.dto.LinkCheckMessage;
+import com.kezuo.core.dto.RegisterMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,8 +44,12 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
 
 		Message in = (Message) msg;
 		try {
-			log.info(String.format("客户端[%s]收到数据：%s", clientId, Crc8Util.formatHexString(in.toHexString())));
-			responseFuture.setResponse(in);
+			if(!(LinkCheckMessage.isLinkCheck(in) || RegisterMessage.isRegister(in))){
+				log.info(String.format("客户端[%s]收到非链路和注册数据：%s", clientId, Crc8Util.formatHexString(in.toHexString())));
+				responseFuture.setResponse(in);
+			}else{
+				log.info(String.format("客户端[%s]收到链路或注册数据：%s", clientId, Crc8Util.formatHexString(in.toHexString())));
+			}
 		} finally {
 			// ByteBuf是一个引用计数对象，这个对象必须显示地调用release()方法来释放
 			// or ((ByteBuf)msg).release();

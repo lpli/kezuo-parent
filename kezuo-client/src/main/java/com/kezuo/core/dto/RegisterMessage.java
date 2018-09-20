@@ -3,6 +3,7 @@
  */
 package com.kezuo.core.dto;
 
+import com.kezuo.util.Crc8Util;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -14,7 +15,7 @@ public class RegisterMessage extends ObjectMessage {
 
 	/**
 	 * 序列号16： 0055101805011801 ，00 00 00 00 00 00 00 00 00 55 10 18 05 01 18 01
-	 * 产品类型2：3128 ，0c 38 软件型号2： 5510，15 86 软件版本2： 1808， 07 10 硬件型号2： 5510，15 86
+	 * 产品类型2：3218 ，0c 38 软件型号2： 5510，15 86 软件版本2： 1808， 07 10 硬件型号2： 5510，15 86
 	 * 硬件版本2： 1712，06 b0 协议版本2： 126， 00 7e
 	 */
 	private String serial;
@@ -87,7 +88,7 @@ public class RegisterMessage extends ObjectMessage {
 		this.afn = 0x65;
 
 		// 数据域
-		this.productType = 3128;
+		this.productType = 3218;
 		this.softModel = 5510;
 		this.softVer = 1808;
 		this.hardModel = 5510;
@@ -95,12 +96,18 @@ public class RegisterMessage extends ObjectMessage {
 		this.protocal = 126;
 		StringBuilder str = new StringBuilder();
 		str.append(StringUtils.leftPad(this.serial,32,"0"));
-		str.append(String.format("%04x", this.productType));
-		str.append(String.format("%04x", this.softModel));
-		str.append(String.format("%04x", this.softVer));
-		str.append(String.format("%04x", this.hardModel));
-		str.append(String.format("%04x", this.hardVer));
-		str.append(String.format("%04x", this.protocal));
+		str.append(Crc8Util.byte2HexString(Crc8Util.int2TolhByte(this.productType)));
+		str.append(Crc8Util.byte2HexString(Crc8Util.int2TolhByte(this.softModel)));
+		str.append(Crc8Util.byte2HexString(Crc8Util.int2TolhByte(this.softVer)));
+		str.append(Crc8Util.byte2HexString(Crc8Util.int2TolhByte(this.hardModel)));
+		str.append(Crc8Util.byte2HexString(Crc8Util.int2TolhByte(this.hardVer)));
+		str.append(Crc8Util.byte2HexString(Crc8Util.int2TolhByte(this.protocal)));
+//		str.append(String.format("%04x", this.productType));
+//		str.append(String.format("%04x", this.softModel));
+//		str.append(String.format("%04x", this.softVer));
+//		str.append(String.format("%04x", this.hardModel));
+//		str.append(String.format("%04x", this.hardVer));
+//		str.append(String.format("%04x", this.protocal));
 		this.content = str.toString();
 		return convertor.toByteMessage(this);
 	}

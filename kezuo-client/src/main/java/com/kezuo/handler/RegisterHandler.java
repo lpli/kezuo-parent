@@ -22,7 +22,7 @@ public class RegisterHandler extends ChannelInboundHandlerAdapter {
 	/**
 	 * 注册消息发送次数
 	 */
-	private static final AtomicInteger REG_COUNT = new AtomicInteger(0);
+	private AtomicInteger REG_COUNT = new AtomicInteger(0);
 
 	/**
 	 * 注册消息
@@ -44,7 +44,7 @@ public class RegisterHandler extends ChannelInboundHandlerAdapter {
 		try {
 			if(LinkCheckMessage.isLinkCheck(in)) {
 				if (LinkCheckMessage.isOnline(in) && REG_COUNT.incrementAndGet() <= 1) {
-					Thread registerThread = new Thread(new Runnable() {
+					Thread registerThread = new Thread (new Runnable() {
 						@Override
 						public void run() {
 							// 收到连接检测保持在线返回,且为首次收到
