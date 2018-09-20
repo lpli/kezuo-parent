@@ -15,7 +15,7 @@ public class UseWaterRecordMsg  {
     private Integer meterMode;//计量模式，0：起停，1：调试，2：计
     private Float userElecNum;//用电量
     private Float userWaterNum;
-    private Float userTmNum;
+    private Float userTmNum;//用时，单位分钟。
     private Float userMoneyNum;
     private Float beginWaterNum;//启动用水量
     private Float endWaterNum;

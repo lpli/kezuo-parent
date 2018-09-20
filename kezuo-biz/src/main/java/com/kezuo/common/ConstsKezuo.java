@@ -31,15 +31,20 @@ public class ConstsKezuo {
     public static int PRODUCTPWD = 6;
     public static int MONTH = 7;
     public static int YEAR = 18;
-    public static int INTERVAL = 60;
+
+    public static int INTERVAL = 60;//心跳间隔(s)
+
+    public  static int TIMEOUT_SEND = 6;//发送超时(s)
+
+    public  static String USER_NAME_FLAG = "-1";//已上报标记
 
     //客户端集合
     public static final ConcurrentHashMap<String, Client> CLIENT_MAP = new ConcurrentHashMap<>();
 
     public static final ConcurrentHashMap<String, Device> DEVICE_MAP = new ConcurrentHashMap<>();
 
-    public static int DAYS_PRE = -2;//向前推的天数
-    public static final int CLIENT_NUM_LIMIT = 100;//测试阶段限制数较小,设置-1，表示没有限制，以max准
+    public static int DAYS_PRE = -180;//向前推的天数
+    public static final int CLIENT_NUM_LIMIT = 167;//167个实际在线，测试阶段限制数较小,设置-1，表示没有限制，以max准
     public static final int CLIENT_NUM_MAX = 300;//最大客户端数量
 
     /**

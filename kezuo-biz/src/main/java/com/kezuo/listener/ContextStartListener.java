@@ -6,6 +6,7 @@ import com.kezuo.common.ConstsKezuo;
 import com.kezuo.entity.Device;
 import com.kezuo.service.IDeviceService;
 import com.kezuo.thread.RealMessageThread;
+import com.kezuo.thread.SendMessageThread;
 import com.kezuo.util.TimeUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,24 +36,28 @@ public class ContextStartListener implements ApplicationListener<ContextRefreshe
         try {
             ApplicationContext context = event.getApplicationContext();
             IDeviceService deviceService = (IDeviceService) context.getBean("deviceService");
-            Map<String, Object> queryMap = new HashMap<>();
-            Calendar cal = Calendar.getInstance();
-            cal.add(Calendar.DAY_OF_MONTH, ConstsKezuo.DAYS_PRE);
-            queryMap.put("beginTime", TimeUtil.convertDateToString(cal.getTime(), TimeUtil.YMDHMS));
-            List<Device> list = deviceService.selectDeviceList(queryMap);
+            List<Device> list = deviceService.selectEffectiveDeviceList();
             Device device;
             for (int i = 0, size = ConstsKezuo.calcClentNum(list.size()); i < size; i++) {
                 device = list.get(i);
-                String stcd = CommSend.getStcdFromDevice(device);
-                Client client = new Client(ConstsKezuo.HOST, ConstsKezuo.PORT, stcd, ConstsKezuo.PRODUCTNO, ConstsKezuo.PRODUCTPWD, ConstsKezuo.YEAR, ConstsKezuo.MONTH, Integer.valueOf(stcd), ConstsKezuo.INTERVAL, CommSend.getSerialFromDevice(device));
-                client.connect();
-                ConstsKezuo.CLIENT_MAP.put(stcd, client);
-                ConstsKezuo.DEVICE_MAP.put(stcd, device);
-                log.info("start client ====" + device.toString());
+                deviceService.creatClient(device);
+
+                try {
+                    Thread.sleep(100);
+                }catch (InterruptedException ie){
+                    log.error(null, ie);
+                }
+//                String stcd = CommSend.getStcdFromDevice(device);
+//                Client client = new Client(ConstsKezuo.HOST, ConstsKezuo.PORT, stcd, ConstsKezuo.PRODUCTNO, ConstsKezuo.PRODUCTPWD, ConstsKezuo.YEAR, ConstsKezuo.MONTH, Integer.valueOf(stcd), ConstsKezuo.INTERVAL, CommSend.getSerialFromDevice(device));
+//                client.connect();
+//                ConstsKezuo.CLIENT_MAP.put(stcd, client);
+//                ConstsKezuo.DEVICE_MAP.put(stcd, device);
+//                log.info("start client ====" + device.toString());
             }
 
             Executor executor = (Executor) context.getBean("executor");
-            executor.execute(new RealMessageThread());
+            //executor.execute(new RealMessageThread());
+            executor.execute(new SendMessageThread());
             log.info("systerm init success(系統初始化成功！)");
         } catch (Exception e) {
             log.error(null, e);

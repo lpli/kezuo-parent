@@ -1,10 +1,12 @@
 package com.kezuo.common;
 
+import com.kezuo.entity.CardUserWaterLog;
 import com.kezuo.entity.Device;
 import com.kezuo.core.dto.LinkCheckMessage;
 import com.kezuo.core.dto.ObjectMessage;
 import com.kezuo.core.dto.RealtimeMessage;
 import com.kezuo.core.dto.RegisterMessage;
+import com.kezuo.entity.DeviceEvent;
 import com.kezuo.entity.dto.UseWaterRecordMsg;
 import com.kezuo.util.Crc8Util;
 import org.slf4j.Logger;
@@ -38,6 +40,46 @@ public class CommSend {
         String distCode = device.getDistrictCode();
         String distShortCode = distCode.substring(distCode.length() - 2, distCode.length());//截取村编码后2位
         return distShortCode + device.getDeviceNo();
+    }
+
+    /**
+     * 获取站址(1-60000)
+     * @param uwlog
+     * @return
+     */
+    public static String getStcdFromCardUseWaterLog(CardUserWaterLog uwlog) {
+        String longDeviceNo = uwlog.getDeviceNo();//150521204202110
+        return longDeviceNo.substring(longDeviceNo.length()-5, longDeviceNo.length());
+    }
+
+    /**
+     * 获取站址(1-60000)
+     * @param de
+     * @return
+     */
+    public static String getStcdFromDeviceEvent(DeviceEvent de) {
+        String longDeviceNo = de.getDeviceNo();//150521204202110
+        return longDeviceNo.substring(longDeviceNo.length()-5, longDeviceNo.length());
+    }
+
+    /**
+     * 获取默认账户
+     * @param de
+     * @return
+     */
+    public static String getUserNoFromDeviceEvent(DeviceEvent de) {
+        String longDeviceNo = de.getDeviceNo();//150521204202110
+        return  "4" + longDeviceNo.substring(longDeviceNo.length()-9, longDeviceNo.length())+ "01";
+    }
+
+    /**
+     * 获取默认账户
+     * @param uwlog
+     * @return
+     */
+    public static String getUserNoFromCardUseWaterLog(CardUserWaterLog uwlog) {
+        String longDeviceNo = uwlog.getDeviceNo();//150521204202110
+        return  "4" + longDeviceNo.substring(longDeviceNo.length()-9, longDeviceNo.length())+ "01";
     }
 
     /**
@@ -111,8 +153,8 @@ public class CommSend {
         RealtimeMessage rm = new RealtimeMessage();
         CommSend.setDeviceUpMsgCommInfo(rm);
         rm.setStation(Integer.valueOf(CommSend.getStcdFromDevice(device)));
-        rm.setChannelNum(2);
-        rm.setData(new float[]{0, device.getWaterUsed().floatValue()});
+        rm.setChannelNum(12);
+        rm.setData(new float[]{0, device.getWaterUsed().floatValue(),0,0,0,0,0,0,0,0,0,0});
         return rm;
     }
 
@@ -163,7 +205,7 @@ public class CommSend {
                 if (val != null) {
                     sb.append(Crc8Util.byte2HexString((byte) (val & 0xff)));
                 } else {
-                    sb.append("00 00 00 00");
+                    sb.append("00");
                 }
             } else if (field.getGenericType().toString().equals("class java.lang.String")) {
                 m = (Method) object.getClass().getMethod("get" + CommSend.getMethodName(field.getName()));
@@ -171,7 +213,7 @@ public class CommSend {
                 if (val != null) {
                     sb.append(val);
                 } else {
-                    sb.append("00 00 00 00 00 00");
+                    sb.append("000000000000");
                 }
             } else if (field.getGenericType().toString().equals("class java.lang.Float")) {
                 m = (Method) object.getClass().getMethod("get" + CommSend.getMethodName(field.getName()));
@@ -179,7 +221,7 @@ public class CommSend {
                 if (val != null) {
                     sb.append(Crc8Util.byte2HexString(Crc8Util.float2byte(val)));
                 } else {
-                    sb.append("00 00 00 00");
+                    sb.append("00000000");
                 }
             } else if (field.getGenericType().toString().equals("class java.util.Date")) {
                 m = (Method) object.getClass().getMethod("get" + CommSend.getMethodName(field.getName()));
